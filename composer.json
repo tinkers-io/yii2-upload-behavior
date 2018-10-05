@@ -1,0 +1,22 @@
+{
+    "name": "tinkers/yii2-upload-behavior",
+    "description": "Yii2 upload behavior which extends the functionality of mohorev/yii2-upload-behavior",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sagar GUhe",
+            "email": "sagarguhe@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.0",
+        "mohorev/yii2-upload-behavior": "*",
+    },
+    "autoload": {
+        "psr-4": {
+            "tinkers\\": ""
+        }
+    }
+}
