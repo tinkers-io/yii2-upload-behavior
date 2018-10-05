@@ -4,6 +4,7 @@ namespace tinkers;
 
 use mohorev\file\UploadBehavior as MohorevUploadBehavior;
 use yii\db\BaseActiveRecord;
+use yii\helpers\FileHelper;
 use yii\web\UploadedFile;
 
 class UploadBehavior extends MohorevUploadBehavior
@@ -36,6 +37,7 @@ class UploadBehavior extends MohorevUploadBehavior
                 $this->_file->name = $this->getFileName($this->_file);
                 $model->setAttribute($this->attribute, $this->_file);
             } elseif ($this->_file instanceof UploadedFile && !$model->hasAttribute($this->attribute) && isset($model->{$this->attribute})) {
+                $this->_file->name = $this->getFileName($this->_file);
                 $model->{$this->attribute} = $this->_file;
             }
         }
@@ -59,7 +61,7 @@ class UploadBehavior extends MohorevUploadBehavior
                 if($model->hasAttribute($this->attribute)) {
                     $model->setAttribute($this->attribute, $this->_file->name);
                 } else {
-                    $model->{$this->attribute} = $this->_file;
+                    $model->{$this->attribute} = $this->_file->name;
                 }
 
             } else {
@@ -73,6 +75,34 @@ class UploadBehavior extends MohorevUploadBehavior
                 }
             }
         }
+    }
+
+    /**
+     * This method is called at the end of inserting or updating a record.
+     * @throws \yii\base\InvalidArgumentException
+     */
+    public function afterSave()
+    {
+        if ($this->_file instanceof UploadedFile) {
+            $path = $this->getUploadPath($this->attribute);
+            if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
+                $this->save($this->_file, $path);
+                $this->afterUpload();
+            } else {
+                throw new InvalidArgumentException(
+                    "Directory specified in 'path' attribute doesn't exist or cannot be created."
+                );
+            }
+        }
+    }
+
+    /**
+     * Returns the UploadedFile instance.
+     * @return UploadedFile
+     */
+    protected function getUploadedFile()
+    {
+        return $this->_file;
     }
 
 }
