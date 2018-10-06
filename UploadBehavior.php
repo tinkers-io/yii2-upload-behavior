@@ -190,6 +190,22 @@ class UploadBehavior extends MohorevUploadBehavior
         return $fileName ? Yii::getAlias($path . '/' . $fileName) : null;
     }
 
+    public function afterDelete()
+    {
+        if (!$this->isMultilingual) {
+            $attribute = $this->attribute;
+        } else {
+            $attribute = $this->originalAttribute;
+        }
+
+        if ($this->unlinkOnDelete && $attribute) {
+            if (!$this->isMultilingual)
+                $this->delete($attribute);
+            else
+                $this->delete($attribute, true);
+        }
+    }
+
     /**
      * Returns the UploadedFile instance.
      * @return UploadedFile
