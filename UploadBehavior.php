@@ -88,15 +88,16 @@ class UploadBehavior extends MohorevUploadBehavior
      */
     public function afterSave()
     {
+	    $model = $this->owner;
         if ($this->_file instanceof UploadedFile) {
             $path = $this->getUploadPath($this->attribute);
             if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
                 $this->save($this->_file, $path);
                 
                 
-            if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
-	            $model->updateAttributes([$this->pathAttribute => str_ireplace(basename($path), '', $path)]);
-            }
+	            if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
+		            $model->updateAttributes([$this->pathAttribute => str_ireplace(basename($path), '', $path)]);
+	            }
                 
                 $this->afterUpload();
             } else {
