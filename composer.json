@@ -12,7 +12,8 @@
     ],
     "require": {
         "yiisoft/yii2": "~2.0.0",
-        "mohorev/yii2-upload-behavior": "~0.2.1"
+        "mohorev/yii2-upload-behavior": "~0.2.1",
+        "yeesoft/yii2-multilingual": "~1.0.2"
     },
     "autoload": {
         "psr-4": {
