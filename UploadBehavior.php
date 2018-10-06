@@ -9,6 +9,11 @@ use yii\web\UploadedFile;
 
 class UploadBehavior extends MohorevUploadBehavior
 {
+	
+	/**
+	 * @var string path attribute to hold path of attachment
+	 */
+	public $pathAttribute;
 
     /**
      * @var UploadedFile the uploaded file instance.
@@ -87,6 +92,12 @@ class UploadBehavior extends MohorevUploadBehavior
             $path = $this->getUploadPath($this->attribute);
             if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
                 $this->save($this->_file, $path);
+                
+                
+            if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
+	            $model->updateAttributes([$this->pathAttribute => str_ireplace(basename($path), '', $path)]);
+            }
+                
                 $this->afterUpload();
             } else {
                 throw new InvalidArgumentException(
