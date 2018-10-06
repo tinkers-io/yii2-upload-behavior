@@ -9,11 +9,11 @@ use yii\web\UploadedFile;
 
 class UploadBehavior extends MohorevUploadBehavior
 {
-	
-	/**
-	 * @var string path attribute to hold path of attachment
-	 */
-	public $pathAttribute;
+
+    /**
+     * @var string path attribute to hold path of attachment
+     */
+    public $pathAttribute;
 
     /**
      * @var UploadedFile the uploaded file instance.
@@ -88,17 +88,18 @@ class UploadBehavior extends MohorevUploadBehavior
      */
     public function afterSave()
     {
-	    $model = $this->owner;
+        $model = $this->owner;
         if ($this->_file instanceof UploadedFile) {
             $path = $this->getUploadPath($this->attribute);
+            $pathUrl = $this->getSavableUrl();
             if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
                 $this->save($this->_file, $path);
-                
-                
-	            if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
-		            $model->updateAttributes([$this->pathAttribute => str_ireplace(basename($path), '', $path)]);
-	            }
-                
+
+
+                if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
+                    $model->updateAttributes([$this->pathAttribute => str_ireplace(basename($pathUrl), '', $pathUrl)]);
+                }
+
                 $this->afterUpload();
             } else {
                 throw new InvalidArgumentException(
@@ -106,6 +107,14 @@ class UploadBehavior extends MohorevUploadBehavior
                 );
             }
         }
+    }
+
+    protected function getSavableUrl()
+    {
+        $path = $this->resolvePath($this->url);
+        $pathUrl = \Yii::getAlias($path);
+
+        return $pathUrl;
     }
 
     /**
