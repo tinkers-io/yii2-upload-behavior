@@ -134,7 +134,7 @@ class UploadBehavior extends MohorevUploadBehavior
 
 
                 if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
-                    $model->updateAttributes([$this->pathAttribute => $pathUrl]);
+                    $model->updateAttributes([$this->pathAttribute => $pathUrl . '/']);
                 }
 
                 $this->afterUpload();
