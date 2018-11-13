@@ -29,6 +29,8 @@ class UploadBehavior extends MohorevUploadBehavior
 
     private $originalAttribute = null;
 
+    public $translations = null;
+
     /**
      * @var UploadedFile the uploaded file instance.
      */
@@ -42,6 +44,18 @@ class UploadBehavior extends MohorevUploadBehavior
             $this->originalAttribute = $this->attribute;
             $this->attribute = \yeesoft\multilingual\helpers\MultilingualHelper::getAttributeName($this->attribute, $this->language);
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function events()
+    {
+        $events = parent::events();
+
+        $events[BaseActiveRecord::EVENT_BEFORE_DELETE] = 'beforeDelete';
+
+        return $events;
     }
 
     /**
@@ -79,12 +93,17 @@ class UploadBehavior extends MohorevUploadBehavior
     {
         /** @var BaseActiveRecord $model */
         $model = $this->owner;
+
+        if ($this->isMultilingual) {
+            $this->translations = $this->owner->translations;
+        }
+
         if (in_array($model->scenario, $this->scenarios)) {
             if ($this->_file instanceof UploadedFile) {
 
                 if (!$model->getIsNewRecord() && $model->isAttributeChanged($this->attribute)) {
                     if ($this->unlinkOnSave === true) {
-                        $this->delete($this->attribute, true);
+                        $this->delete($this->originalAttributebute, true);
                     }
                 }
 
@@ -92,7 +111,7 @@ class UploadBehavior extends MohorevUploadBehavior
                 if (!$model->getIsNewRecord() && ($this->isMultilingual && $model->translation->{$this->originalAttribute} !== $model->{$this->attribute})) {
                     if ($this->unlinkOnSave === true) {
 
-                        $this->delete($this->originalAttribute, true);
+                        $this->delete($this->attribute, true);
                     }
                 }
 
@@ -127,7 +146,8 @@ class UploadBehavior extends MohorevUploadBehavior
             if (!$this->isMultilingual)
                 $path = $this->getUploadPath($this->attribute);
             else
-                $path = $this->getUploadPath($this->originalAttribute);
+                $path = $this->getUploadPath($this->attribute);
+
             $pathUrl = $this->getSavableUrl();
             if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
                 $this->save($this->_file, $path);
@@ -183,11 +203,19 @@ class UploadBehavior extends MohorevUploadBehavior
             if (!$this->isMultilingual) {
                 $fileName = ($old === true) ? $model->getOldAttribute($attribute) : $model->$attribute;
             } else {
-                $fileName = ($old === true) ? $model->translation->getOldAttribute($attribute) : $model->translation->$attribute;
+                foreach ($this->translations as $translation) {
+                    if ($translation->language === $this->language) {
+                        $fileName = ($old === true) ? $translation->getOldAttribute($this->originalAttribute) : $translation->{$this->originalAttribute};
+                    }
+                }
             }
         }
 
         return $fileName ? Yii::getAlias($path . '/' . $fileName) : null;
+    }
+
+    public function beforeDelete() {
+        $this->translations = $this->owner->translations;
     }
 
     public function afterDelete()
