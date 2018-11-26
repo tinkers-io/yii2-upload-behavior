@@ -103,7 +103,7 @@ class UploadBehavior extends MohorevUploadBehavior
 
                 if (!$model->getIsNewRecord() && $model->isAttributeChanged($this->attribute)) {
                     if ($this->unlinkOnSave === true) {
-                        $this->delete($this->originalAttributebute, true);
+                        $this->delete($this->originalAttribute, true);
                     }
                 }
 
