@@ -2,6 +2,7 @@
 
 namespace tinkers;
 
+use yeesoft\multilingual\helpers\MultilingualHelper;
 use Yii;
 use mohorev\file\UploadBehavior as MohorevUploadBehavior;
 use yii\db\BaseActiveRecord;
@@ -42,7 +43,12 @@ class UploadBehavior extends MohorevUploadBehavior
 
         if ($this->isMultilingual) {
             $this->originalAttribute = $this->attribute;
-            $this->attribute = \yeesoft\multilingual\helpers\MultilingualHelper::getAttributeName($this->attribute, $this->language);
+            $this->attribute = MultilingualHelper::getAttributeName($this->attribute, $this->language);
+
+            if($this->pathAttribute && !empty($this->pathAttribute)) {
+                $this->pathAttribute = MultilingualHelper::getAttributeName($this->pathAttribute, $this->language);
+            }
+
         }
     }
 
