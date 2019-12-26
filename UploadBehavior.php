@@ -12,7 +12,6 @@ use yii\web\UploadedFile;
 
 class UploadBehavior extends MohorevUploadBehavior
 {
-
     /**
      * @var string path attribute to hold path of attachment
      */
@@ -25,13 +24,9 @@ class UploadBehavior extends MohorevUploadBehavior
      * @var string if field is multilingual then provide language code
      */
     public $language = '';
-
     protected $multiLingualAttribute = null;
-
     private $originalAttribute = null;
-
     public $translations = null;
-
     /**
      * @var UploadedFile the uploaded file instance.
      */
@@ -40,15 +35,12 @@ class UploadBehavior extends MohorevUploadBehavior
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-
         if ($this->isMultilingual) {
             $this->originalAttribute = $this->attribute;
             $this->attribute = MultilingualHelper::getAttributeName($this->attribute, $this->language);
-
-            if($this->pathAttribute && !empty($this->pathAttribute)) {
+            if ($this->pathAttribute && !empty($this->pathAttribute)) {
                 $this->pathAttribute = MultilingualHelper::getAttributeName($this->pathAttribute, $this->language);
             }
-
         }
     }
 
@@ -58,9 +50,7 @@ class UploadBehavior extends MohorevUploadBehavior
     public function events()
     {
         $events = parent::events();
-
         $events[BaseActiveRecord::EVENT_BEFORE_DELETE] = 'beforeDelete';
-
         return $events;
     }
 
@@ -81,7 +71,6 @@ class UploadBehavior extends MohorevUploadBehavior
                     $this->_file = UploadedFile::getInstance($model, $this->attribute);
                 }
             }
-
             if ($this->_file instanceof UploadedFile && $model->hasAttribute($this->attribute)) {
                 $this->_file->name = $this->getFileName($this->_file);
                 $model->setAttribute($this->attribute, $this->_file);
@@ -99,32 +88,34 @@ class UploadBehavior extends MohorevUploadBehavior
     {
         /** @var BaseActiveRecord $model */
         $model = $this->owner;
-
         if ($this->isMultilingual) {
             $this->translations = $this->owner->translations;
         }
-
         if (in_array($model->scenario, $this->scenarios)) {
             if ($this->_file instanceof UploadedFile) {
-
                 if (!$model->getIsNewRecord() && $model->isAttributeChanged($this->attribute)) {
                     if ($this->unlinkOnSave === true) {
                         $this->delete($this->originalAttribute, true);
                     }
                 }
-
                 // if multilingual
                 if (!$model->getIsNewRecord() && ($this->isMultilingual && $model->translation->{$this->originalAttribute} !== $model->{$this->attribute})) {
                     if ($this->unlinkOnSave === true) {
-
                         $this->delete($this->attribute, true);
                     }
                 }
-
                 if ($model->hasAttribute($this->attribute)) {
                     $model->setAttribute($this->attribute, $this->_file->name);
                 } else {
                     $model->{$this->attribute} = $this->_file->name;
+                }
+
+                if ($model->hasAttribute($this->pathAttribute) && !$model->getIsNewRecord()) {
+                    $model->{$this->pathAttribute} = $this->getSavableUrl() . '/';
+                } elseif ($model->hasProperty($this->pathAttribute) && !$model->getIsNewRecord()) {
+                    $model->{$this->pathAttribute} = $this->getSavableUrl() . '/';
+                } elseif ($model->hasProperty($this->pathAttribute) && $model->getIsNewRecord()) {
+                    $model->{$this->pathAttribute} = $this->getSavableUrl() . '/';
                 }
 
             } else {
@@ -148,21 +139,18 @@ class UploadBehavior extends MohorevUploadBehavior
     {
         $model = $this->owner;
         if ($this->_file instanceof UploadedFile) {
-
             if (!$this->isMultilingual)
                 $path = $this->getUploadPath($this->attribute);
             else
                 $path = $this->getUploadPath($this->attribute);
-
             $pathUrl = $this->getSavableUrl();
             if (is_string($path) && FileHelper::createDirectory(dirname($path))) {
                 $this->save($this->_file, $path);
-
-
-                if (isset($this->pathAttribute) && !empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
+                if (!empty($this->pathAttribute) && $model->hasAttribute($this->pathAttribute)) {
+                    $model->updateAttributes([$this->pathAttribute => $pathUrl . '/']);
+                } elseif (!empty($this->pathAttribute) && $model->hasProperty($this->pathAttribute)) {
                     $model->updateAttributes([$this->pathAttribute => $pathUrl . '/']);
                 }
-
                 $this->afterUpload();
             } else {
                 throw new InvalidArgumentException(
@@ -202,7 +190,6 @@ class UploadBehavior extends MohorevUploadBehavior
         /** @var BaseActiveRecord $model */
         $model = $this->owner;
         $path = $this->resolvePath($this->path);
-
         if (!$isDeletion) {
             $fileName = ($old === true) ? $model->getOldAttribute($attribute) : $model->$attribute;
         } else {
@@ -217,10 +204,15 @@ class UploadBehavior extends MohorevUploadBehavior
             }
         }
 
+        if (empty($fileName)) {
+            $fileName = $model->$attribute;
+        }
+
         return $fileName ? Yii::getAlias($path . '/' . $fileName) : null;
     }
 
-    public function beforeDelete() {
+    public function beforeDelete()
+    {
         $this->translations = $this->owner->translations;
     }
 
@@ -231,7 +223,6 @@ class UploadBehavior extends MohorevUploadBehavior
         } else {
             $attribute = $this->originalAttribute;
         }
-
         if ($this->unlinkOnDelete && $attribute) {
             if (!$this->isMultilingual)
                 $this->delete($attribute);
@@ -248,5 +239,4 @@ class UploadBehavior extends MohorevUploadBehavior
     {
         return $this->_file;
     }
-
 }
